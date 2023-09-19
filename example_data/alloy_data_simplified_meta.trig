@@ -1,0 +1,183 @@
+prefix owl: <http://www.w3.org/2002/07/owl#> 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+prefix xsd: <http://www.w3.org/2001/XMLSchema#> 
+prefix dcat: <http://www.w3.org/ns/dcat#> 
+prefix dct: <http://purl.org/dc/terms/> 
+
+prefix rr: <http://www.w3.org/ns/r2rml#> 
+prefix rml: <http://w3id.org/rml/> 
+prefix ql: <http://semweb.mmlab.be/ns/ql#> 
+prefix csvw: <http://www.w3.org/ns/csvw#> 
+
+prefix emmo: <http://emmo.info/emmo#> 
+prefix ex: <http://example.org/test/> 
+prefix : <http://w3id.org/semsys/ns/ontotrans-mapper#> 
+
+ex:AlloyDatasetMetadata a dcat:Dataset ;
+
+	# ... description below
+	:hasDataModel ex:AlloyDataset_Ontology ;
+
+	# ... description below
+	:hasTriplesMap ex:AlloyDataset_TriplesMap ;
+
+	# contain DCAT distribution information for data access
+	dcat:distribution [
+		a dcat:Distribution ;
+		dcat:downloadURL "https://semantics.id/resource/ontotrans_demo/alloy_data_simplified.csv" ;
+		dct:accessRights "Open Access" ;
+		dct:format "CSV" ;
+		dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+	] ;
+.
+
+# containing all necessary construct in addition to data mapping
+# ... not sure whether it's necessary to add the class/subclass information, if we assume that we load the whole EMMO ontology
+ex:AlloyDataset_Ontology {
+
+	# emmo classes and subClassOf relations
+	emmo:Material a owl:Class .
+	emmo:Dataset a owl:Class .
+	emmo:TotalComposition a owl:Class .
+	emmo:Datum a owl:Class .
+	emmo:QuantityValue a owl:Class .
+	emmo:SingleComponentComposition a owl:Class .
+	emmo:ChemicalSpecies a owl:Class .
+	emmo:ChemicalCompositionQuantity  a owl:Class .
+	emmo:Numerical a owl:Class .
+	emmo:AlumuniumAtom a owl:Class ;
+		rdfs:subClassOf emmo:ChemicalSpecies .
+	emmo:SiliconAtom a owl:Class ;
+		rdfs:subClassOf emmo:ChemicalSpecies .
+	emmo:WeightPercent a owl:Class ;
+		rdfs:subClassOf emmo:WeightPercent .
+	emmo:Real a owl:Class ;
+		rdfs:subClassOf emmo:Numerical .
+	emmo:Alloy a owl:Class ;
+		rdfs:subClassOf emmo:Material .
+
+	# instances of EMMO classes and sub-properties of EMMO properties to structure instances
+	ex:wt_percent a emmo:WeightPercent .
+	ex:alumunium a emmo:AlumuniumAtom .
+	ex:silicon a emmo:SiliconAtom .
+	ex:hasAlumuniumComponent a owl:ObjectProperty ;
+		rdfs:subPropertyOf emmo:hasComponent .
+	ex:hasSiliconComponent a owl:ObjectProperty ;
+		rdfs:subPropertyOf emmo:hasComponent .
+}
+
+# a set of RML mapping that can be used to transform CSV file into ontology using RML engine
+# the content of the following namedgraphs can be used directly by RML engine
+# ... this part can be replaced by any mapping language, including DLITE / Tripper
+ex:AlloyDataset_TriplesMap {
+
+	# source file - will be injected with the real source file in the runtime
+	ex:AlloyDataset_TriplesMap_Source a rml:LogicalSource ;
+		rml:referenceFormulation ql:CSV ;
+	.
+	
+	# mapping of first-level instance
+	ex:AlloyDataset_TriplesMap_Main a rr:TriplesMap ;
+		rml:logicalSource ex:AlloyDataset_TriplesMap_Source ;
+
+		# decide on how to create a subject from each iterator
+		rr:subjectMap [
+	  		rr:template "http://example.org/resource/{id}"
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate rdf:type ;
+			rr:objectMap [ rr:constant emmo:Dataset ] ;
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate emmo:isDescriptionFor ;
+			rr:objectMap [ rr:template "http://example.org/test/alloy-{id}" ] ;
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate ex:hasAlumuniumComponent ;
+			rr:objectMap [ rr:template "http://example.org/resource/num-al-{id}" ] ;
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate emmo:hasSiliconComponent ;
+			rr:objectMap [ rr:template "http://example.org/resource/num-si-{id}" ] ;
+		] ;
+	.
+
+	# mapping of alumunium component part of alloy
+	ex:AlloyDataset_TriplesMap_Al a rr:TriplesMap ;
+		rml:logicalSource ex:AlloyDataset_TriplesMap_Source ;
+
+		rr:subjectMap [
+	  		rr:template "http://example.org/resource/num-al-{id}"
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate rdf:type ;
+			rr:objectMap [ rr:constant emmo:Datum ] ;
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate emmo:hasMeasurementUnit ;
+			rr:objectMap [ rr:constant ex:wt_percent ]
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate emmo:hasNumericalValue ;
+			rr:objectMap [ 
+				rml:reference "percent_Al" ;
+				rr:datatype xsd:float ;
+			] ;
+		] ;
+	.
+
+	# mapping of silicon component part of alloy
+	ex:AlloyDataset_TriplesMap_Si a rr:TriplesMap ;
+		rml:logicalSource ex:AlloyDataset_TriplesMap_Source ;
+
+		rr:subjectMap [
+	  		rr:template "http://example.org/resource/num-si-{id}"
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate rdf:type ;
+			rr:objectMap [ rr:constant emmo:Datum ] ;
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate emmo:hasNumericalValue ;
+			rr:objectMap [ 
+				rml:reference "percent_Si" ;
+				rr:datatype xsd:float ;
+			] ;
+		] ;
+	.
+
+	# mapping of alloy information
+	ex:AlloyDataset_TriplesMap_Alloy a rr:TriplesMap ;
+		rml:logicalSource [
+			# rml:source "" ;
+			rml:referenceFormulation ql:CSV ;
+		] ;
+
+		rr:subjectMap [
+	  		rr:template "http://example.org/test/alloy-{id}"
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate rdf:type ;
+			rr:objectMap [ rr:constant emmo:Alloy ] ;
+		] ;
+		
+		rr:predicateObjectMap [
+			rr:predicate rdfs:label ;
+			rr:objectMap [ 
+				rr:template "alloy-{id}" ;
+				rr:termType rml:Literal ;
+			] ;
+		] ;
+	.
+}
