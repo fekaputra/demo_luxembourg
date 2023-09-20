@@ -1,4 +1,4 @@
-# Data Processing App
+# OntoTrans Demo App
 
 ## Overview
 This application is a simple Flask web app with three main functionalities: (i) uploading a file containing experiment metadata, (ii) processing the uploaded metadata and transform the original data stored in certain location into its RDF representation, and storing the processed data into a text file which is (iii) then available for download. 
@@ -11,11 +11,11 @@ This application is a simple Flask web app with three main functionalities: (i) 
 2. **Setup Virtual Environment (Optional but recommended)**    
 `python3 -m venv env source env/bin/activate` # On Windows, use: `env\Scripts\activate`
 
-3. **Install All Required Libraries**   
-`pip install -r requirements.txt`
-
-4. **Clone the Repository**   
+3. **Clone the Repository**   
 Clone the repository or copy the scripts into your project directory.
+
+4. **Install All Required Libraries**   
+`pip install -r requirements.txt`
 
 ## Project Structure
 
@@ -44,7 +44,7 @@ Clone the repository or copy the scripts into your project directory.
 
 1. Navigate to the project directory in your terminal.
 2. Run the following command to start the Flask application:   
-`python app.py`
+`python main.py`
 3. Open a web browser and visit `http://127.0.0.1:5000/` to access the application.
 
 ### Contributing
